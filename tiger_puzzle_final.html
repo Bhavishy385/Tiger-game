@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tiger Puzzle</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#111;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+  .card{width:340px;height:420px;perspective:1200px}
+  .inner{position:relative;width:100%;height:100%;transition:transform 1s;transform-style:preserve-3d}
+  .flipped{transform:rotateY(180deg)}
+  .side{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:18px;box-shadow:0 10px 25px rgba(0,0,0,.5);overflow:hidden}
+  .front{background:#222;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px}
+  .back{background:url('myphoto.jpg') center/cover no-repeat;color:white;text-shadow:0 3px 8px rgba(0,0,0,.8);transform:rotateY(180deg);display:flex;justify-content:center;align-items:center;text-align:center;padding:20px;font-weight:bold;font-size:22px}
+  #nameBox input{padding:10px;border-radius:10px;border:none;margin-top:10px}
+  #startBtn{margin-top:12px;padding:10px 18px;border:none;border-radius:12px;background:#22c55e;color:white;font-weight:bold;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px;margin-top:10px}
+  .piece{width:100px;height:100px;background-image:url('https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=600');background-size:300px 300px;cursor:grab;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="inner" id="inner">
+    <div class="side front">
+      <div id="nameBox">
+        <h3>Apna naam likho</h3>
+        <input id="username" placeholder="Naam" />
+        <br/>
+        <button id="startBtn">Start Puzzle</button>
+        <div style="margin-top:12px;font-size:13px;opacity:.9;text-align:left;max-width:260px">
+          <b>Kaise khelna hai:</b>
+          <ul style="padding-left:18px;margin:6px 0">
+            <li>Ek block ko dabakar pakdo</li>
+            <li>Dusre block par chhod do (swap hoga)</li>
+            <li>Puri tiger photo banani hai</li>
+            <li>Photo complete hote hi card flip ho jayega</li>
+          </ul>
+        </div>
+      </div>
+      <div id="puzzle" style="display:none">
+        <h3>Jigsaw Puzzle Solve karo</h3>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+    <div class="side back" id="resultText"></div>
+  </div>
+</div>
+<script>
+let nameValue="";
+const startBtn=document.getElementById('startBtn');
+const puzzle=document.getElementById('puzzle');
+const nameBox=document.getElementById('nameBox');
+const grid=document.getElementById('grid');
+const inner=document.getElementById('inner');
+const resultText=document.getElementById('resultText');
+
+startBtn.onclick=()=>{
+ nameValue=document.getElementById('username').value.trim();
+ if(!nameValue){alert('Naam likho pehle');return;}
+ nameBox.style.display='none';
+ puzzle.style.display='block';
+ createPuzzle();
+}
+
+let dragged=null;
+let correct=[0,1,2,3,4,5,6,7,8];
+
+function createPuzzle(){
+ grid.innerHTML='';
+ let shuffled=[...correct].sort(()=>Math.random()-0.5);
+ shuffled.forEach(num=>{
+   const div=document.createElement('div');
+   div.className='piece';
+   div.draggable=true;
+   div.dataset.index=num;
+   const x=(num%3)*100;
+   const y=Math.floor(num/3)*100;
+   div.style.backgroundPosition=`-${x}px -${y}px`;
+   div.addEventListener('dragstart',()=>dragged=div);
+   div.addEventListener('dragover',e=>e.preventDefault());
+   div.addEventListener('drop',()=>{
+     if(dragged!==div){
+       let temp=div.dataset.index;
+       div.dataset.index=dragged.dataset.index;
+       dragged.dataset.index=temp;
+       div.style.backgroundPosition=dragged.style.backgroundPosition;
+       dragged.style.backgroundPosition=`-${(temp%3)*100}px -${Math.floor(temp/3)*100}px`;
+       checkWin();
+     }
+   });
+   grid.appendChild(div);
+ });
+}
+
+function checkWin(){
+ let pieces=[...grid.children].map(p=>Number(p.dataset.index));
+ if(JSON.stringify(pieces)===JSON.stringify(correct)){
+   setTimeout(()=>{
+     resultText.innerText=`${nameValue}  bhavishya Parashar tumhare papa ji hai`;
+     inner.classList.add('flipped');
+   },400);
+ }
+}
+</script>
+</body>
+</html>
